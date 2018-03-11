@@ -24,18 +24,29 @@ syntax "~" [e] = typeToPath e
 URLPath : Type
 URLPath = List PathComp
 
-URLPathToSig : URLPath -> Type
-URLPathToSig [] = String
-URLPathToSig ((Empty x) :: xs) = URLPathToSig xs
-URLPathToSig ((Printable t f) :: xs) = t -> URLPathToSig xs
+URLPathToSig : URLPath -> Type -> Type
+URLPathToSig [] t = t
+URLPathToSig ((Empty x) :: xs) t = URLPathToSig xs t
+URLPathToSig ((Printable t f) :: xs) t'= t -> URLPathToSig xs t' 
 
-pathToFuncAcc : (p : URLPath) -> String -> URLPathToSig p
-pathToFuncAcc [] x = x
-pathToFuncAcc ((Empty y) :: xs) acc = pathToFuncAcc xs (acc ++ "/" ++ y)
-pathToFuncAcc ((Printable t f) :: xs) acc = \arg => pathToFuncAcc xs (acc ++ "/" ++ (f arg))
+pathToAccGeneric : (Applicative acc, Semigroup (acc String)) => (p : URLPath) -> (acc String) -> URLPathToSig p (acc String)
+pathToAccGeneric [] x = x
+pathToAccGeneric ((Empty e) :: xs) acc = pathToAccGeneric xs (acc <+> (pure e))
+pathToAccGeneric ((Printable t f) :: xs) acc = \arg => pathToAccGeneric xs (acc <+> (pure $ f arg))
 
-pathToFunc : (p : URLPath) -> URLPathToSig p
-pathToFunc p = pathToFuncAcc p ""
+pathToAcc : (Applicative acc, Monoid (acc String)) => (p : URLPath) -> URLPathToSig p (acc String)
+pathToAcc p = pathToAccGeneric p neutral
+
+PathToStringAcc : (p : URLPath) -> String -> URLPathToSig p String
+PathToStringAcc [] x = x
+PathToStringAcc ((Empty y) :: xs) acc = PathToStringAcc xs (acc ++ "/" ++ y)
+PathToStringAcc ((Printable t f) :: xs) acc = \arg => PathToStringAcc xs (acc ++ "/" ++ (f arg))
+
+pathToStringFunc : (p : URLPath) -> URLPathToSig p String
+pathToStringFunc p = PathToStringAcc p ""
 
 unitTest : String
-unitTest = pathToFunc ["username", Str', "id", ~Int] "abc" 0
+unitTest = pathToStringFunc ["username", Str', "id", ~Int] "abc" 0
+
+unitTest1 : List String
+unitTest1 = pathToAccGeneric ["username", Str', "id", ~Int] [] "mark" 0
