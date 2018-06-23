@@ -1,6 +1,9 @@
+module APIComponents
+
 import Data.List
 %default total
 
+public export
 data PathComp : Type where
   Empty : String -> PathComp
   Printable : (t : Type) -> (t -> String) -> PathComp
@@ -8,22 +11,29 @@ data PathComp : Type where
 Str' : PathComp
 Str' = Printable String id
 
+public export
 data Showable : Type -> Type where
   ToShow : Show a => Showable a
 
-implicit
+export implicit
 emptyPath : String -> PathComp
 emptyPath = Empty
 
+-- I wish I could make this definition implicit but Idris can't 
+-- find where to apply it correctly
 --implicit
+export
 typeToPath : (t : Type) -> {auto prf : Showable t} -> PathComp
 typeToPath t {prf = ToShow} = Printable t show
 
 syntax "~" [e] = typeToPath e
 
+
+public export
 URLPath : Type
 URLPath = List PathComp
 
+public export
 URLPathToSig : URLPath -> Type -> Type
 URLPathToSig [] t = t
 URLPathToSig ((Empty x) :: xs) t = URLPathToSig xs t
@@ -42,6 +52,7 @@ PathToStringAcc [] x = x
 PathToStringAcc ((Empty y) :: xs) acc = PathToStringAcc xs (acc ++ "/" ++ y)
 PathToStringAcc ((Printable t f) :: xs) acc = \arg => PathToStringAcc xs (acc ++ "/" ++ (f arg))
 
+export
 pathToStringFunc : (p : URLPath) -> URLPathToSig p String
 pathToStringFunc p = PathToStringAcc p ""
 
