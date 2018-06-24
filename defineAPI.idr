@@ -43,13 +43,11 @@ methodBodyView (PUT body) = SomeBody (PUT body)
 methodBodyView (DELETE body) = SomeBody (DELETE body)
 methodBodyView (PATCH body) = SomeBody (PATCH body)
 
-
 record EndpointType where
   constructor MkEndpointType
   method : HTTPMethod
   path : URLPath
   returnType : Type
-
 
 syntax [m] ":>" [p] ":>:" [r] = MkEndpointType m p r
 
@@ -77,10 +75,13 @@ record UserInfo where
   userID : Int
   username : String
 
+Show UserInfo where
+  show (MkUserInfo userID username) = "User(id : " ++ (show userID) ++ ", usename: " ++ username ++ ")"
+
 myAPI : ApiDef
 myAPI = [ GET :> ["v1", "payment"] :>: String
         , GET :> ["v1", "payment", ~Int] :>: String
-        , (POST UserInfo) :>  ["v1", "payment", ~Int] :>: ()
+        , (POST UserInfo) :>  ["v1", "payment", ~Int] :>: String
         ]
 
 
@@ -90,11 +91,18 @@ ServerType (x :: []) = GetPathType x
 ServerType (x :: xs) = (GetPathType x, ServerType xs)
 
 
-snd_fn : Int -> String
-snd_fn = ?whut_1
 
-myServer : GetPathType ((POST UserInfo) :>  ["v1", "payment", ~Int] :>: ())
-myServer = ?idkanymore
+firstfn : String
+firstfn = "hello"
+
+sndfn : Int -> String
+sndfn x = "The int is " ++ show x
+
+postfn : UserInfo -> Int -> String
+postfn user paymentID = "user " ++ (show user) ++ " has opened payment with id " ++ (show paymentID)
+
+myServer : ServerType DefineAPI.myAPI
+myServer = (firstfn, sndfn, postfn)
 
 returnString : IO String
 returnString = pure "hello"

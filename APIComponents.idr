@@ -15,14 +15,14 @@ public export
 data Showable : Type -> Type where
   ToShow : Show a => Showable a
 
-export implicit
+public export implicit
 emptyPath : String -> PathComp
 emptyPath = Empty
 
 -- I wish I could make this definition implicit but Idris can't 
 -- find where to apply it correctly
 --implicit
-export
+public export
 typeToPath : (t : Type) -> {auto prf : Showable t} -> PathComp
 typeToPath t {prf = ToShow} = Printable t show
 
