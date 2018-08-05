@@ -1,4 +1,4 @@
-module APIComponents
+module Network.API.Components
 
 import Data.List
 %default total

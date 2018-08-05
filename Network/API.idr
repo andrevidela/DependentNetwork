@@ -1,5 +1,6 @@
-module DefineAPI
-import APIComponents
+module Network.API
+
+import Network.API.Components
 
 %default total
 
@@ -43,6 +44,7 @@ methodBodyView (PUT body) = SomeBody (PUT body)
 methodBodyView (DELETE body) = SomeBody (DELETE body)
 methodBodyView (PATCH body) = SomeBody (PATCH body)
 
+export
 record EndpointType where
   constructor MkEndpointType
   method : HTTPMethod
@@ -67,6 +69,7 @@ GetPathType (method :> path :>: returnType) with (methodBodyView method)
     let body = getBody prf in
         ListToType (body :: (pathToList path)) returnType
 
+public export
 ApiDef : Type
 ApiDef = List EndpointType
 
@@ -85,12 +88,11 @@ myAPI = [ GET :> ["v1", "payment"] :>: String
         ]
 
 
+export
 ServerType : ApiDef -> Type
 ServerType [] = ()
 ServerType (x :: []) = GetPathType x
 ServerType (x :: xs) = (GetPathType x, ServerType xs)
-
-
 
 firstfn : String
 firstfn = "hello"
@@ -101,7 +103,7 @@ sndfn x = "The int is " ++ show x
 postfn : UserInfo -> Int -> String
 postfn user paymentID = "user " ++ (show user) ++ " has opened payment with id " ++ (show paymentID)
 
-myServer : ServerType DefineAPI.myAPI
+myServer : ServerType Network.API.myAPI
 myServer = (firstfn, sndfn, postfn)
 
 returnString : IO String
