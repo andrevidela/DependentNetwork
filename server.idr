@@ -8,8 +8,6 @@ import Network.Socket.Data
 
 %default total
 
-
-
 partial
 specificEngine : HttpEngine IO
 specificEngine = defaultHttpEngine IO ioTcpSockets
@@ -25,5 +23,3 @@ main : IO ()
 main = do
   result <- run mainST
   printLn result
-
-
